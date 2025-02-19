@@ -7,16 +7,16 @@ class PeerTubeVideoSourceInfo {
   final String url;
 
   /// Thumbnail URL for the video.
-  String? thumbnailURL;
+  final String? thumbnailURL;
 
   /// Duration in milliseconds.
-  int? duration;
+  final int? duration;
 
   /// Whether the video is a live stream.
-  bool isLive;
+  final bool isLive;
 
   /// Resolutions available for the video.
-  Map<String, String> resolutions;
+  final Map<String, String> resolutions;
 
   /// Type of the video source. Can be "hls" or "mp4".
   final BetterPlayerVideoFormat type;
@@ -29,6 +29,25 @@ class PeerTubeVideoSourceInfo {
     this.thumbnailURL,
     this.isLive = false,
   });
+
+  /// Creates a new instance with modified values while keeping the original values for fields not provided.
+  PeerTubeVideoSourceInfo copyWith({
+    String? url,
+    String? thumbnailURL,
+    int? duration,
+    bool? isLive,
+    Map<String, String>? resolutions,
+    BetterPlayerVideoFormat? type,
+  }) {
+    return PeerTubeVideoSourceInfo._(
+      url: url ?? this.url,
+      thumbnailURL: thumbnailURL ?? this.thumbnailURL,
+      duration: duration ?? this.duration,
+      isLive: isLive ?? this.isLive,
+      resolutions: resolutions ?? this.resolutions,
+      type: type ?? this.type,
+    );
+  }
 
   /// Extracts the best video source (HLS or MP4) from [VideoDetails].
   /// Prioritizes `streamingPlaylists` (HLS) over `files` (MP4).

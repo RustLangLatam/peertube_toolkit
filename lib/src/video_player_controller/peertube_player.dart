@@ -28,10 +28,9 @@ class PeerTubePlayer {
     key,
     PeerTubeVideoSourceInfo source,
     BetterPlayerNotificationConfiguration? notificationCfg,
+    double aspectRatio,
   ) async {
     final activeCache = (currentPlatform == PlatformType.android);
-
-    print("Active Cache: $activeCache");
 
     // Extract the thumbnail URL from the video source
     final thumbnailURL = source.thumbnailURL;
@@ -43,8 +42,14 @@ class PeerTubePlayer {
     _controller = BetterPlayerController(
       // Use live stream configuration if the video is a live stream
       isLive
-          ? PeerTubePlayerConfig.liveStreamConfig(thumbnailURL: thumbnailURL)
-          : PeerTubePlayerConfig.defaultConfig(thumbnailURL: thumbnailURL),
+          ? PeerTubePlayerConfig.liveStreamConfig(
+            thumbnailURL: thumbnailURL,
+            aspectRatio: aspectRatio,
+          )
+          : PeerTubePlayerConfig.defaultConfig(
+            thumbnailURL: thumbnailURL,
+            aspectRatio: aspectRatio,
+          ),
     );
 
     // Create a data source for the video player
@@ -61,7 +66,8 @@ class PeerTubePlayer {
             source.duration,
           ), // Configure buffering
       resolutions: source.resolutions, // Set available video resolutions
-      notificationConfiguration: notificationCfg, // Set notification configuration
+      notificationConfiguration:
+          notificationCfg, // Set notification configuration
     );
 
     // Set up the data source for the video player
@@ -86,9 +92,10 @@ class PeerTubePlayer {
     key,
     VideoDetails? videoDetails, {
     String? nodeUrl,
+    double aspectRatio = 16 / 9,
   }) async {
     // Extract the best video source from the video details
-    final source =
+    PeerTubeVideoSourceInfo source =
         PeerTubeVideoSourceInfo.extractBestVideoSource(videoDetails)!;
 
     // Get the thumbnail URL from the video details and node URL
@@ -96,6 +103,11 @@ class PeerTubePlayer {
       videoDetails!,
       nodeUrl!,
     );
+
+    if (thumbnailURL != null) {
+      // Update the source with the thumbnail URL
+      source = source.copyWith(thumbnailURL: thumbnailURL);
+    }
 
     // Initialize the video player with the extracted source and thumbnail URL
     _initializeVideoPlayer(
@@ -106,6 +118,7 @@ class PeerTubePlayer {
         title: videoDetails.name,
         author: VideoUtils.extractNameOrDisplayName(videoDetails),
       ),
+      aspectRatio,
     );
   }
 
@@ -117,8 +130,9 @@ class PeerTubePlayer {
   /// [source]: The video source info.
   Future<void> initializeVideoPlayerFromSourceInfo(
     key,
-    PeerTubeVideoSourceInfo source,
-  ) async {
+    PeerTubeVideoSourceInfo source, {
+    double aspectRatio = 16 / 9,
+  }) async {
     // Initialize the video player with the given source
     _initializeVideoPlayer(
       key,
@@ -131,6 +145,7 @@ class PeerTubePlayer {
                 .last, // Use the last segment of the URL as the title
         author: "PeerTube", // Default author name
       ),
+      aspectRatio,
     );
   }
 

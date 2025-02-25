@@ -8,3 +8,4 @@ export 'src/transitions/export.dart';
 export 'src/utils/export.dart';
 export 'src/video_player_controller/export.dart';
 export 'src/core/platform_detector/export.dart';
+export 'src/p2p_video_player/p2p_player_core.dart';

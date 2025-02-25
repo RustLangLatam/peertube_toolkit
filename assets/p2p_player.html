@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
+  <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@~1/dist/hls.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "vidstack-player": "https://cdn.vidstack.io/player",
+        "p2p-media-loader-core": "https://cdn.jsdelivr.net/npm/p2p-media-loader-core@^2/dist/p2p-media-loader-core.es.min.js",
+        "p2p-media-loader-hlsjs": "https://cdn.jsdelivr.net/npm/p2p-media-loader-hlsjs@^2/dist/p2p-media-loader-hlsjs.es.min.js"
+      }
+    }
+  </script>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Prevent scrolling */
+    }
+
+    /* Main container */
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100vh; /* Full viewport height */
+      background-color: #000; /* Black background */
+    }
+
+    /* Loading spinner container */
+    .loading-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #000; /* Black background */
+    }
+
+    /* Customizable spinner */
+    .loading-spinner {
+      --spinner-color: #ff8c42; /* Orange (PeerTube's primary color) */
+      --spinner-track-color: #4a4a4a; /* Gray (PeerTube's secondary color) */
+      border: 2px solid var(--spinner-track-color); /* Thinner border */
+      border-top: 2px solid var(--spinner-color); /* Thinner border with primary color */
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Player container */
+    #target {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none; /* Hidden initially */
+    }
+
+    .media-player[data-view-type="video"] {
+      aspect-ratio: 16 / 9;
+    }
+
+    .vds-video-layout {
+      --video-brand: hsl(0, 0%, 96%);
+      /* Layout: https://vidstack.io/docs/player/components/layouts/default-layout#video-layout  */
+      /* Components: https://www.vidstack.io/docs/player/components/layouts/default-layout#components */
+    }
+
+    .vds-audio-layout {
+      --audio-brand: hsl(0, 0%, 96%);
+      /* Layout: https://vidstack.io/docs/player/components/layouts/default-layout#audio-layout */
+      /* Components: https://www.vidstack.io/docs/player/components/layouts/default-layout#components */
+    }
+
+    .plyr {
+      --plyr-color-main: hsl(198, 100%, 50%);
+      /* CSS Vars: https://vidstack.io/docs/player/components/layouts/plyr-layout#css-variables */
+    }
+
+  </style>
+
+  <script type="module">
+    import { VidstackPlayer, VidstackPlayerLayout } from "vidstack-player";
+    import { HlsJsP2PEngine } from "p2p-media-loader-hlsjs";
+
+    // Global variable to store the HLS source
+    let hlsSrc = "";
+
+    class P2P {
+      constructor() {
+        this.hlsP2PEngine = null;
+        this.stats = {
+          httpDownloadedBytes: 0,
+          p2pDownloadedBytes: 0,
+          p2pUploadedBytes: 0,
+        };
+
+        // Check if hlsSrc is not empty before initializing
+        if (hlsSrc) {
+          this.init();
+        } else {
+          // Show the loading spinner if no HLS source is available
+          document.getElementById("loading-container").style.display = "flex";
+        }
+      }
+
+      init = async () => {
+        // Hide the loading spinner and show the player
+        document.getElementById("loading-container").style.display = "none";
+        document.getElementById("target").style.display = "block";
+
+        this.player = await VidstackPlayer.create({
+          target: "#target",
+          src: hlsSrc, // Use the hlsSrc variable
+          layout: new VidstackPlayerLayout(),
+          playsInline: true,
+          autoPlay: true
+        });
+
+        this.setupEventListeners();
+        this.startStatsInterval();
+      };
+
+      setupEventListeners = () => {
+        this.player.addEventListener(
+          "provider-change",
+          this.onProviderChange
+        );
+
+        this.player.addEventListener("play", () => {
+          this.updateP2PState(false);
+        });
+
+        this.player.addEventListener("pause", () => {
+          this.updateP2PState(true);
+        });
+      };
+
+      onProviderChange = (event) => {
+        const provider = event.detail;
+        if (provider?.type === "hls") {
+          this.setupHlsProvider(provider);
+        }
+      };
+
+      setupHlsProvider = (provider) => {
+        const HlsWithP2P = HlsJsP2PEngine.injectMixin(window.Hls);
+        provider.library = HlsWithP2P;
+        provider.config = {
+          p2p: {
+            core: {
+              isP2PDisabled: false,
+            },
+            rtcConfig: {
+              iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+              ],
+              sdpSemantics: "unified-plan",
+              encodedInsertableStreams: true,
+            },
+            constraints: {
+              mandatory: {},
+              optional: [{ DtlsSrtpKeyAgreement: false }],
+            },
+            onHlsJsCreated: this.onHlsJsCreated,
+          },
+        };
+      };
+
+      onHlsJsCreated = (hls) => {
+        this.hlsP2PEngine = hls.p2pEngine;
+        this.setupP2PEventListeners(hls.p2pEngine);
+      };
+
+      setupP2PEventListeners = (p2pEngine) => {
+        p2pEngine.addEventListener("onPeerConnect", this.onPeerConnect);
+        p2pEngine.addEventListener("onPeerClose", this.onPeerClose);
+        p2pEngine.addEventListener(
+          "onChunkDownloaded",
+          this.onChunkDownloaded
+        );
+        p2pEngine.addEventListener("onChunkUploaded", this.onChunkUploaded);
+      };
+
+      onPeerConnect = (params) => {
+        window.flutter_inappwebview?.callHandler("onPeerConnect", params);
+      };
+
+      onPeerClose = (params) => {
+        window.flutter_inappwebview?.callHandler("onPeerClose", params);
+      };
+
+      onChunkDownloaded = (bytesLength, downloadSource) => {
+        if (downloadSource === "http") {
+          this.stats.httpDownloadedBytes += bytesLength;
+        } else if (downloadSource === "p2p") {
+          this.stats.p2pDownloadedBytes += bytesLength;
+        }
+      };
+
+      onChunkUploaded = (bytesLength) => {
+        this.stats.p2pUploadedBytes += bytesLength;
+      };
+
+      startStatsInterval = () => {
+        this.statsInterval = setInterval(this.postStats, 1000);
+      };
+
+      stopStatsInterval = () => {
+        clearInterval(this.statsInterval);
+        this.statsInterval = undefined;
+      };
+
+      postStats = () => {
+        if (this.stats.p2pUploadedBytes > 0) {
+          this.postUploadStats(this.stats.p2pUploadedBytes);
+          this.stats.p2pUploadedBytes = 0;
+        }
+
+        if (this.stats.httpDownloadedBytes > 0) {
+          this.postDownloadStats(this.stats.httpDownloadedBytes, "http");
+          this.stats.httpDownloadedBytes = 0;
+        }
+
+        if (this.stats.p2pDownloadedBytes > 0) {
+          this.postDownloadStats(this.stats.p2pDownloadedBytes, "p2p");
+          this.stats.p2pDownloadedBytes = 0;
+        }
+      };
+
+      postDownloadStats = (downloadedBytes, downloadSource) => {
+        window.flutter_inappwebview?.callHandler(
+          "onChunkDownloaded",
+          downloadedBytes,
+          downloadSource
+        );
+      };
+
+      postUploadStats = (uploadedBytes) => {
+        window.flutter_inappwebview?.callHandler(
+          "onChunkUploaded",
+          uploadedBytes
+        );
+      };
+
+      destroyP2P = () => {
+        this.stopStatsInterval();
+        if (!this.hlsP2PEngine) return;
+
+        this.hlsP2PEngine.removeEventListener(
+          "onPeerConnect",
+          this.onPeerConnect
+        );
+        this.hlsP2PEngine.removeEventListener(
+          "onPeerClose",
+          this.onPeerClose
+        );
+        this.hlsP2PEngine.removeEventListener(
+          "onChunkDownloaded",
+          this.onChunkDownloaded
+        );
+        this.hlsP2PEngine.removeEventListener(
+          "onChunkUploaded",
+          this.onChunkUploaded
+        );
+
+        this.hlsP2PEngine.destroy();
+        this.hlsP2PEngine = undefined;
+      };
+
+      updateP2PState = (isDisabled) => {
+        if (!this.hlsP2PEngine) return;
+        const currentState =
+          this.hlsP2PEngine.getConfig().core.mainStream.isP2PDisabled;
+
+        if (currentState === isDisabled) return;
+
+        this.hlsP2PEngine.applyDynamicConfig({
+          core: { isP2PDisabled: isDisabled },
+        });
+
+        if (isDisabled) {
+          this.stopStatsInterval();
+        } else {
+          this.startStatsInterval();
+        }
+      };
+
+      updateHlsSrc = async (newSrc) => {
+        hlsSrc = newSrc;
+        console.log("HLS Source updated to:", hlsSrc);
+
+        // If hlsSrc is not empty, initialize the player
+        if (hlsSrc) {
+          this.destroyP2P();
+          await this.init();
+        } else {
+          // If hlsSrc is empty, show the loading spinner
+          document.getElementById("loading-container").style.display = "flex";
+          document.getElementById("target").style.display = "none";
+        }
+      };
+    }
+
+    // Initialize the P2P player
+    let p2pInstance;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.p2pInstance = new P2P();
+
+      window.updateHlsSrc = (newSrc) => {
+        window.p2pInstance.updateHlsSrc(newSrc);
+        document.getElementById("hlsSrcValue").innerText = newSrc;
+      };
+    });
+  </script>
+</head>
+
+<body>
+<!-- Main container -->
+<div class="container">
+  <!-- Loading spinner container -->
+  <div id="loading-container" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Player container -->
+  <div id="target">
+    <video id="player" controls></video>
+  </div>
+
+</div>
+</body>
+</html>

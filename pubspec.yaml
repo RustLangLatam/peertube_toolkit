@@ -16,6 +16,7 @@ dependencies:
   timeago:
   shimmer:
   url_launcher:
+  flutter_inappwebview: ^6.1.5
 
   peer_tube_api_sdk:
 

@@ -30,6 +30,19 @@ class PeerTubeVideoSourceInfo {
     this.isLive = false,
   });
 
+  /// Creates a new instance of [PeerTubeVideoSourceInfo] with HLS format.
+  factory PeerTubeVideoSourceInfo.fromHls(String url,
+      {String? thumbnailURL, bool isLive = false}) {
+    return PeerTubeVideoSourceInfo._(
+      url: url,
+      thumbnailURL: thumbnailURL,
+      duration: null,
+      isLive: isLive,
+      resolutions: {},
+      type: BetterPlayerVideoFormat.hls,
+    );
+  }
+
   /// Creates a new instance with modified values while keeping the original values for fields not provided.
   PeerTubeVideoSourceInfo copyWith({
     String? url,
@@ -70,10 +83,9 @@ class PeerTubeVideoSourceInfo {
         // No separate resolutions needed for HLS
         resolutions: {},
         // Determine the type of video (live or hls)
-        type:
-            videoDetails.streamingPlaylists != null
-                ? BetterPlayerVideoFormat.hls
-                : BetterPlayerVideoFormat.other,
+        type: videoDetails.streamingPlaylists != null
+            ? BetterPlayerVideoFormat.hls
+            : BetterPlayerVideoFormat.other,
         // Determine if the video is a live stream
         isLive: videoDetails.isLive ?? false,
         // Video duration
@@ -155,13 +167,12 @@ String? _getMidResolution(Iterable<String> resolutionLabels) {
   if (resolutionLabels.isEmpty) return null;
 
   // Convert resolution labels to numeric values
-  List<int> resolutions =
-      resolutionLabels
-          .map(
-            (res) => int.tryParse(res.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
-          )
-          .where((res) => res > 0) // Remove invalid or zero resolutions
-          .toList();
+  List<int> resolutions = resolutionLabels
+      .map(
+        (res) => int.tryParse(res.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+      )
+      .where((res) => res > 0) // Remove invalid or zero resolutions
+      .toList();
 
   if (resolutions.isEmpty) return null;
 

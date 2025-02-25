@@ -99,18 +99,22 @@ class PeerTubePlayerControlsConfig {
   }
 
   /// Returns a configuration optimized for live streaming playback.
-  static BetterPlayerControlsConfiguration liveStreamConfig() {
+  static BetterPlayerControlsConfiguration liveStreamConfig({
+    Color progressBarColor = Colors.redAccent,
+    Color bufferedColor = Colors.grey,
+    Color backgroundColor = Colors.black,
+  }) {
     return BetterPlayerControlsConfiguration(
       showControlsOnInitialize: false,
       controlBarColor: Colors.black54,
+      progressBarBufferedColor: bufferedColor,
+      progressBarPlayedColor: progressBarColor,
+      backgroundColor: backgroundColor,
       textColor: Colors.white,
       iconsColor: Colors.white,
-      progressBarPlayedColor: Colors.redAccent,
       progressBarHandleColor: Colors.white,
-      progressBarBufferedColor: Colors.grey,
       progressBarBackgroundColor: Colors.white30,
       loadingColor: Colors.orange,
-      backgroundColor: Colors.black,
       enableFullscreen: true,
       enablePip: true,
       enableProgressText: false,
@@ -129,4 +133,44 @@ class PeerTubePlayerControlsConfig {
       controlsHideTime: const Duration(milliseconds: 200),
     );
   }
+
+  /// Returns a configuration that only shows the progress bar without any other controls.
+  /// Returns a configuration that only shows the progress bar with no other controls.
+  static BetterPlayerControlsConfiguration progressBarOnlyConfig({
+    Color progressBarColor = Colors.deepOrange,
+    Color bufferedColor = Colors.grey,
+    Color backgroundColor = Colors.black,
+  }) {
+    return BetterPlayerControlsConfiguration(
+      showControlsOnInitialize: true, // Controls are hidden initially
+      controlBarColor: Colors.transparent, // No control bar
+      textColor: Colors.transparent, // Hide text
+      iconsColor: Colors.transparent, // Hide icons
+      progressBarPlayedColor: progressBarColor, // Color of played portion
+      progressBarHandleColor: Colors.white, // Handle color
+      progressBarBufferedColor: bufferedColor, // Buffered portion color
+      progressBarBackgroundColor: Colors.white30, // Background of the progress bar
+      loadingColor: Colors.transparent, // Hide loading spinner
+      backgroundColor: backgroundColor, // Background color
+      enableFullscreen: false,
+      enablePip: false,
+      enableProgressText: false, // No time indicators
+      enableProgressBar: true, // ✅ Show progress bar
+      enableProgressBarDrag: false, // Disable dragging
+      enablePlayPause: false, // No play/pause button
+      enableSkips: false, // No skip buttons
+      enableSubtitles: false, // No subtitles
+      enableQualities: false, // No quality selector
+      enablePlaybackSpeed: false, // No speed controls
+      enableRetry: false, // No retry button
+      enableAudioTracks: false, // No audio track selector
+      controlBarHeight: 0, // Hide control bar completely
+      // overflowMenuIcon: null, // No overflow menu
+      forwardSkipTimeInMilliseconds: 0, // No skip forward
+      backwardSkipTimeInMilliseconds: 0, // No skip backward
+      controlsHideTime: Duration.zero, // Never show full controls
+
+    );
+  }
+
 }

@@ -25,11 +25,11 @@ class PeerTubePlayer {
   /// [source]: The video source information.
   /// [notificationCfg]: The notification configuration for the video player.
   Future<void> _initializeVideoPlayer(
-    key,
-    PeerTubeVideoSourceInfo source,
-    BetterPlayerNotificationConfiguration? notificationCfg,
-    double aspectRatio,
-  ) async {
+      key,
+      PeerTubeVideoSourceInfo source,
+      BetterPlayerNotificationConfiguration? notificationCfg,
+      double aspectRatio,
+      {BetterPlayerControlsConfiguration? controlsConfiguration}) async {
     final activeCache = (currentPlatform == PlatformType.android);
 
     // Extract the thumbnail URL from the video source
@@ -41,15 +41,16 @@ class PeerTubePlayer {
     // Initialize the video player controller with the appropriate configuration
     _controller = BetterPlayerController(
       // Use live stream configuration if the video is a live stream
+
       isLive
           ? PeerTubePlayerConfig.liveStreamConfig(
-            thumbnailURL: thumbnailURL,
-            aspectRatio: aspectRatio,
-          )
+              thumbnailURL: thumbnailURL,
+              aspectRatio: aspectRatio,
+              controlsConfiguration: controlsConfiguration)
           : PeerTubePlayerConfig.defaultConfig(
-            thumbnailURL: thumbnailURL,
-            aspectRatio: aspectRatio,
-          ),
+              thumbnailURL: thumbnailURL,
+              aspectRatio: aspectRatio,
+              controlsConfiguration: controlsConfiguration),
     );
 
     // Create a data source for the video player
@@ -63,8 +64,8 @@ class PeerTubePlayer {
           activeCache ? PeerTubePlayerCacheConfig.create(source) : null,
       bufferingConfiguration:
           PeerTubePlayerBufferOptimizerConfig.getOptimalBufferConfig(
-            source.duration,
-          ), // Configure buffering
+        source.duration,
+      ), // Configure buffering
       resolutions: source.resolutions, // Set available video resolutions
       notificationConfiguration:
           notificationCfg, // Set notification configuration
@@ -88,12 +89,10 @@ class PeerTubePlayer {
   /// [key]: The key for the video player.
   /// [videoDetails]: The video details.
   /// [nodeUrl]: The node URL.
-  Future<void> initializePlayerFromVideoDetails(
-    key,
-    VideoDetails? videoDetails, {
-    String? nodeUrl,
-    double aspectRatio = 16 / 9,
-  }) async {
+  Future<void> initializePlayerFromVideoDetails(key, VideoDetails? videoDetails,
+      {String? nodeUrl,
+      double aspectRatio = 16 / 9,
+      BetterPlayerControlsConfiguration? controlsConfiguration}) async {
     // Extract the best video source from the video details
     PeerTubeVideoSourceInfo source =
         PeerTubeVideoSourceInfo.extractBestVideoSource(videoDetails)!;
@@ -111,15 +110,15 @@ class PeerTubePlayer {
 
     // Initialize the video player with the extracted source and thumbnail URL
     _initializeVideoPlayer(
-      key,
-      source,
-      PeerTubePlayerNotificationConfig.create(
-        thumbnailURL: thumbnailURL,
-        title: videoDetails.name,
-        author: VideoUtils.extractNameOrDisplayName(videoDetails),
-      ),
-      aspectRatio,
-    );
+        key,
+        source,
+        PeerTubePlayerNotificationConfig.create(
+          thumbnailURL: thumbnailURL,
+          title: videoDetails.name,
+          author: VideoUtils.extractNameOrDisplayName(videoDetails),
+        ),
+        aspectRatio,
+        controlsConfiguration: controlsConfiguration);
   }
 
   /// Initializes the video player from a video source info.
@@ -129,24 +128,22 @@ class PeerTubePlayer {
   /// [key]: The key for the video player.
   /// [source]: The video source info.
   Future<void> initializeVideoPlayerFromSourceInfo(
-    key,
-    PeerTubeVideoSourceInfo source, {
-    double aspectRatio = 16 / 9,
-  }) async {
+      key, PeerTubeVideoSourceInfo source,
+      {double aspectRatio = 16 / 9,
+      BetterPlayerControlsConfiguration? controlsConfiguration}) async {
     // Initialize the video player with the given source
     _initializeVideoPlayer(
-      key,
-      source,
-      PeerTubePlayerNotificationConfig.create(
-        thumbnailURL: source.thumbnailURL,
-        title:
-            source.url
-                .split('/')
-                .last, // Use the last segment of the URL as the title
-        author: "PeerTube", // Default author name
-      ),
-      aspectRatio,
-    );
+        key,
+        source,
+        PeerTubePlayerNotificationConfig.create(
+          thumbnailURL: source.thumbnailURL,
+          title: source.url
+              .split('/')
+              .last, // Use the last segment of the URL as the title
+          author: "PeerTube", // Default author name
+        ),
+        aspectRatio,
+        controlsConfiguration: controlsConfiguration);
   }
 
   /// Get the player controller instance.

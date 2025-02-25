@@ -23,15 +23,18 @@ class PeerTubePlayerConfig {
     bool handleLifecycle = true,
     bool showPlaceholderUntilPlay = true,
     String? thumbnailURL,
+    BetterPlayerControlsConfiguration? controlsConfiguration,
   }) {
     return BetterPlayerConfiguration(
       aspectRatio: aspectRatio,
       fit: BoxFit.contain,
       autoPlay: autoPlay,
       looping: !isLive,
-      controlsConfiguration: isLive
-          ? PeerTubePlayerControlsConfig.liveStreamConfig()
-          : PeerTubePlayerControlsConfig.defaultConfig(),
+      controlsConfiguration: controlsConfiguration != null
+          ? controlsConfiguration
+          : isLive
+              ? PeerTubePlayerControlsConfig.liveStreamConfig()
+              : PeerTubePlayerControlsConfig.defaultConfig(),
       allowedScreenSleep: false,
       autoDetectFullscreenDeviceOrientation: true,
       autoDetectFullscreenAspectRatio: true,
@@ -59,6 +62,7 @@ class PeerTubePlayerConfig {
   static BetterPlayerConfiguration liveStreamConfig({
     double aspectRatio = 16 / 9,
     String? thumbnailURL,
+    BetterPlayerControlsConfiguration? controlsConfiguration,
   }) {
     return defaultConfig(
       isLive: true,
@@ -67,6 +71,7 @@ class PeerTubePlayerConfig {
       handleLifecycle: false,
       showPlaceholderUntilPlay: false,
       thumbnailURL: thumbnailURL,
+      controlsConfiguration: controlsConfiguration,
     );
   }
 
@@ -74,6 +79,7 @@ class PeerTubePlayerConfig {
   static BetterPlayerConfiguration manualPlaybackConfig({
     double aspectRatio = 16 / 9,
     String? thumbnailURL,
+    BetterPlayerControlsConfiguration? controlsConfiguration,
   }) {
     return defaultConfig(
       isLive: false,
@@ -82,6 +88,7 @@ class PeerTubePlayerConfig {
       handleLifecycle: true,
       showPlaceholderUntilPlay: true,
       thumbnailURL: thumbnailURL,
+      controlsConfiguration: controlsConfiguration,
     );
   }
 }

@@ -60,10 +60,8 @@ class PeerTubePlayer {
       videoFormat: source.type,
       useAsmsSubtitles: false, // Disable ASMS subtitles
       liveStream: isLive, // Set the live stream flag
-      cacheConfiguration:
-          activeCache ? PeerTubePlayerCacheConfig.create(source) : null,
-      bufferingConfiguration:
-          PeerTubePlayerBufferOptimizerConfig.getOptimalBufferConfig(
+      cacheConfiguration: activeCache ? PeerTubePlayerCacheConfig.create(source) : null,
+      bufferingConfiguration:  PeerTubePlayerBufferOptimizerConfig.getOptimalBufferConfig(
         source.duration,
       ), // Configure buffering
       resolutions: source.resolutions, // Set available video resolutions

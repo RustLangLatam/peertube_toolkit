@@ -27,7 +27,7 @@ class PeerTubePlayerConfig {
   }) {
     return BetterPlayerConfiguration(
       aspectRatio: aspectRatio,
-      fit: BoxFit.contain,
+      fit: BoxFit.fitWidth,
       autoPlay: autoPlay,
       looping: !isLive,
       controlsConfiguration: controlsConfiguration != null
@@ -41,9 +41,9 @@ class PeerTubePlayerConfig {
       handleLifecycle: handleLifecycle,
       expandToFill: true,
       showPlaceholderUntilPlay: showPlaceholderUntilPlay,
-      systemOverlaysAfterFullScreen: [SystemUiOverlay.top],
+      systemOverlaysAfterFullScreen: [...SystemUiOverlay.values],
       placeholder: thumbnailURL != null
-          ? CachedNetworkImage(imageUrl: thumbnailURL, fit: BoxFit.contain)
+          ? CachedNetworkImage(imageUrl: thumbnailURL, fit: BoxFit.fitWidth)
           : null,
       deviceOrientationsAfterFullScreen: [
         DeviceOrientation.portraitUp,

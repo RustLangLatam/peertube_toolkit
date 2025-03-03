@@ -1,6 +1,6 @@
 import 'package:river_player/river_player.dart';
 
-/// A utility class for optimizing video buffering configurations based on video duration.
+/// A utility class for optimizing video buffering configurations.
 class PeerTubePlayerBufferOptimizerConfig {
   /// Returns an optimized `BetterPlayerBufferingConfiguration` based on video duration.
   ///
@@ -28,22 +28,22 @@ class PeerTubePlayerBufferOptimizerConfig {
     // Calculate the minimum buffer size based on the video duration
     // The minimum buffer size is capped between 10s and 40s
     int minBufferMs =
-    (videoDurationSeconds * 500).clamp(10000, 40000); // 10s - 40s
+        (videoDurationSeconds * 500).clamp(10000, 40000); // 10s - 40s
 
     // Calculate the maximum buffer size based on the video duration
     // The maximum buffer size is capped between 1min and 6.5min
     int maxBufferMs =
-    (videoDurationSeconds * 2000).clamp(60000, 6553600); // 1min - 6.5min
+        (videoDurationSeconds * 2000).clamp(60000, 6553600); // 1min - 6.5min
 
     // Calculate the buffer size for playback based on the video duration
     // The buffer size for playback is capped between 2s and 5s
     int bufferForPlaybackMs =
-    (videoDurationSeconds * 100).clamp(2000, 5000); // 2s - 5s
+        (videoDurationSeconds * 100).clamp(2000, 5000); // 2s - 5s
 
     // Calculate the buffer size for playback after rebuffering based on the video duration
     // The buffer size for playback after rebuffering is capped between 4s and 10s
     int bufferForPlaybackAfterRebufferMs =
-    (videoDurationSeconds * 200).clamp(4000, 10000); // 4s - 10s
+        (videoDurationSeconds * 200).clamp(4000, 10000); // 4s - 10s
 
     // Return an optimized `BetterPlayerBufferingConfiguration` based on the calculated buffer sizes
     return BetterPlayerBufferingConfiguration(
@@ -51,6 +51,29 @@ class PeerTubePlayerBufferOptimizerConfig {
       maxBufferMs: maxBufferMs,
       bufferForPlaybackMs: bufferForPlaybackMs,
       bufferForPlaybackAfterRebufferMs: bufferForPlaybackAfterRebufferMs,
+    );
+  }
+
+  /// Returns a fixed `BetterPlayerBufferingConfiguration` with minimal buffer values.
+  ///
+  /// This method provides a buffering configuration optimized for low-latency playback
+  /// with minimal buffering. It uses the following fixed values:
+  ///
+  /// * `minBufferMs`: 2000 (2 seconds)
+  /// * `maxBufferMs`: 10000 (10 seconds)
+  /// * `bufferForPlaybackMs`: 1000 (1 second)
+  /// * `bufferForPlaybackAfterRebufferMs`: 2000 (2 seconds)
+  ///
+  /// This configuration is ideal for scenarios where low latency and quick startup
+  /// are prioritized over large buffers.
+  ///
+  /// @return A `BetterPlayerBufferingConfiguration` with minimal buffer values.
+  static BetterPlayerBufferingConfiguration getMinimalBufferConfig() {
+    return const BetterPlayerBufferingConfiguration(
+      minBufferMs: 2000, // 2 seconds
+      maxBufferMs: 10000, // 10 seconds
+      bufferForPlaybackMs: 1000, // 1 second
+      bufferForPlaybackAfterRebufferMs: 2000, // 2 seconds
     );
   }
 }

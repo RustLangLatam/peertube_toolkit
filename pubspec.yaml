@@ -1,6 +1,6 @@
 name: peertube_toolkit
 description: "A new Flutter package project."
-version: 0.0.1
+version: 0.0.2-dev
 
 environment:
   sdk: ^3.4.3

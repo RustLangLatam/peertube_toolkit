@@ -152,7 +152,7 @@ class PeerTubePlayerControlsConfig {
       progressBarBackgroundColor: Colors.white30, // Background of the progress bar
       loadingColor: Colors.transparent, // Hide loading spinner
       backgroundColor: backgroundColor, // Background color
-      enableFullscreen: false,
+      enableFullscreen: true,
       enablePip: false,
       enableProgressText: false, // No time indicators
       enableProgressBar: true, // ✅ Show progress bar
@@ -169,7 +169,6 @@ class PeerTubePlayerControlsConfig {
       forwardSkipTimeInMilliseconds: 0, // No skip forward
       backwardSkipTimeInMilliseconds: 0, // No skip backward
       controlsHideTime: Duration.zero, // Never show full controls
-
     );
   }
 

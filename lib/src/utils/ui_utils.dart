@@ -218,7 +218,7 @@ class UIUtils {
       flightShuttleBuilder: _heroFlightBuilder,
       child: useRoundedCorners
           ? _buildRoundedThumbnail(thumbnailURL, borderRadius)
-          : _buildAspectRatioThumbnail(thumbnailURL, aspectRatio),
+          : buildAspectRatioThumbnail(thumbnailURL, aspectRatio),
     );
   }
 
@@ -232,7 +232,7 @@ class UIUtils {
   }
 
   /// Builds an aspect ratio thumbnail using `AspectRatio`.
-  static Widget _buildAspectRatioThumbnail(
+  static Widget buildAspectRatioThumbnail(
       String imageUrl, double aspectRatio) {
     return AspectRatio(
       aspectRatio: aspectRatio,
